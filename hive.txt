@@ -1,0 +1,159 @@
+                                           HIVE
+
+                              EXTERNAL TABLE USING LOCATIONS
+set hive.cli.print.header=true;
+set hive.cli.print.current.db=true;
+
+      WITH OUT LOCATION
+___________________________
+hive>create external table cata(id int,name string) 
+row format delimited fields terminated by ','
+STORED AS TEXTFILE
+LOCATION '/user/external/cate
+
+-> LOAD THE DATA FROM LOCAL PATH
+hive>load data infile '/user/cat' into table cata
+
+-> if we did not specify the location,the table will get create under /user/hive/warehouse/ and it will treat as manage table.
+but when we drop it,it will delete the only table and schema not the data in hdfs
+
+  WITH LOCATION
+_________________
+
+hive>create external table emp1(id int,name string,sal int) row format delimited fields terminated by ',' STORED AS textfile LOCATION '/departments/emp1';
+
+hive>load data local inpath '/home/cloudera/ext.txt' into table emp1
+
+->if we specify location existing file will copy under wherehouse dir only 
+-> WHEN WE DROP THE TABLE we will not loose the data it look like hdfs only 
+
+->cat /usr/local/hive-2.0.1/conf/.hiverc
+it is headen file while hive is starting up it shown every thing
+
+->when i drop the external table just table only drop data is same we can use use
+existing data when we create next table i try this just create directory only
+when others use nothing impact on anthing on data
+
+hive>  create external table em1(id int,name string,sal int) row format delimited fields terminated by ',' STORED AS textfile LOCATION '/user/hive/warehouse/retail_cca174.db/em1';
+OK
+Time taken: 0.117 seconds
+hive> select * from em1;
+OK
+1	gopi	1000
+2	nandini	2000
+3	uzair	4000
+4	sai	5000
+5	sandeep	6000
+1	gopi	1000
+2	nandini	2000
+3	uzair	4000
+4	sai	5000
+5	sandeep	6000
+
+->ADVANTAGES
+when i through hive external table every one  can use pig or mapreduce can use when drop table
+only table drop data not drop every one can access the data
+
+ ->HOW DO I KNOW WHIC ONE IS MANGED TABLE OR EXTERNAL TABLE BY USING THIS COMMAND
+
+hive>describe formated table name
+hive>describe extended table name
+
+-> see all table which one is managed or external in mysql setup our hive table
+information on mymetastore database
+->use mymetastore
+-> select * from tables;
+->select * from tabls where TBL_TYPE='EXTERNAL_TABLE'
+these metastore information we specified in hivesite.xml 
+these is metadata what we are stored in hive
+  
+
+              COMPLEX DATA TYPES
+      
+   ARRAY
+
+we have two type of data types 1)premitive data types 2)complex data tpe
+1)array->we can mantain leaniar list of data types
+ex:emp assits i have some assits differnt places in that time we use array
+   
+  SAMPLEDATA.TXT
+empid,empname,sal,assists,city
+1,abc,111,lpt&bbt&ph,hyd
+
+hive>create table table_array(eid int,ename string,esal int,eassits ARRAY<STRING>,city string)
+row format delimated fields terminated by ','
+'COLLECTIONS ITEMS TERMINATED BY '&'';
+
+hive> =>next load data into your hive table
+hive>select assects[1] from table_array where emp_id=1;
+hive>select assets[0] from table_array;
+
+
+                MAP DATATYPE:
+
+1,ravi,40000,laptop&bag&extended moniter&ram,prs$00$rpr$200,hyd
+
+hive>create table table_map(id int,name string,sal bigint,assets ARRAY<STRING>,
+DEDUCTION map<STRING,INT>,city string) row formate delimited fields terminated by ','
+'COLLECTION TERMINATED BY '&' MAP KEYS TERMINATED BY '$''
+
+hive>load data local inpath 'src' table name;
+hive>select column name{*pf*} from table map;
+
+                STRUCT:
+1,abc,4000,a$B$c,pf#500#epf#200,hyd&ap&50001
+
+create table table_struct(id int,name string,sal bigint,aus ARRAY<STRING>
+,DUD MAP<STRING,INT>,ADDR STRUCT<CITY:STRING,STATE:STRING,PIN:BIGINT>
+ROW FORMAT DELIMITED FIELDS TERMINATED BY ',' COLLECTION TERMINATED BY '$'
+MAP KEYS TERMINATED BY '#' 
+
+hive>select addr.city from table struct;
+
+
+            PARTITIONS:
+
+partitioned and non-partitioned
+by default each table is non-partitioned
+->partition is a subdirectory in table directory.adv of partition no need scan
+all the table data
+
+hive>create table emp(id int,name string,sal int,sex string,dno int)
+row format delimited fields terminated by ',';
+
+hive>load data local inpath 'emp' into table emp:
+->thing that in the table 10k records is there 
+select * from emp;->first query is fetch the fast the records
+select * from emp where sex='f';->here scan all the records and check condition
+
+hive> create table epart(id int,name string,sal int,sex string,dno int)
+partitioned by (s string)->logical column
+
+hive>insert overwrite table epart partition(s='f') select * from empl where sex='f';
+
+
+ partition is dividing your data into managebull smaller parts.
+when you have emp table in this laks of records is there i want fetch them into
+whos salary is >50000
+asson as i execute the command it scan all the deta and fetch and dispaly
+it scan million of records 
+if scan whole data it is unnescrray at the time we use partition
+
+
+hive>CREATE TABLE IF NOT EXISTS STOCK_PART(id int,name string,sal int) PARTITIONED BY
+(enam_date string) row format delimited fields terminated by ','
+
+hive>load data inpath 'path' partion (what you give)
+hive>source .bashrc
+hive -f /filepath  ->hive execute with out opening command prompt
+
+
+
+
+
+
+
+
+
+
+
